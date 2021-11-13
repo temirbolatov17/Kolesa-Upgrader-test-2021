@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Тестирование DOM манипуляций должен добавить элемент в блок #app 1`] = `
+App {
+  "_element": <div
+    id="app"
+  >
+    test text
+  </div>,
+}
+`;

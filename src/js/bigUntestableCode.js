@@ -1,47 +1,52 @@
+import App from './app';
+import Error from './error';
+import Loader from './loader';
 import { getItemsRequest, toggleFavoriteRequest } from './requests';
 
+const LOADING_ERROR_MESSAGE = 'Произошла ошибка, попробуйте еще раз';
+const LOADING_MESSAGE = 'Загрузка...';
+
+const app = new App();
+const loader = new Loader();
+const error = new Error();
+
 export default () => {
-    document.querySelector('#error').style.display = 'none';
-    document.querySelector('#loader').style.display = 'block';
+    error.hideError();
+    loader.showLoader();
 
     getItemsRequest()
         .then(({ data }) => {
             if (data.result !== 'ok' || typeof data.html === 'undefined') {
-                const errorElement = document.querySelector('#error');
-
-                errorElement.innerHTML = 'Произошла ошибка, попробуйте ещё раз.';
-                errorElement.style.display = 'block';
+                error.createErrorMessage(LOADING_ERROR_MESSAGE);
+                error.showError();
             } else {
-                const appElement = document.querySelector('#app');
+                app.createAppMessage(data.html);
 
-                appElement.innerHTML = data.html;
-                appElement.style.display = 'block';
+                app.showApp();
 
-                Array.from(appElement.querySelector('button')).forEach((button) => {
-                    button.addEventListener('click', (e) => {
-                        e.preventDefault();
+                app.addButtonListener((e) => {
+                    e.preventDefault();
 
-                        e.currentTarget.textContent = 'Загрузка...';
+                    e.currentTarget.textContent = LOADING_MESSAGE;
 
-                        toggleFavoriteRequest(e.currentTarget.dataset.id)
-                            .then(({ data: buttonData }) => {
-                                if (buttonData.result === 'set') {
-                                    e.currentTarget.textContent = '🌝';
-                                } else {
-                                    e.currentTarget.textContent = '🌚';
-                                }
-                            });
-                    });
+                    toggleFavoriteRequest(e.currentTarget.dataset.id).then(
+                        ({ data: buttonData }) => {
+                            if (buttonData.result === 'set') {
+                                e.currentTarget.textContent = '🌝';
+                            } else {
+                                e.currentTarget.textContent = '🌚';
+                            }
+                        },
+                    );
                 });
             }
         })
         .catch((e) => {
-            const errorElement = document.querySelector('#error');
+            error.createErrorMessage(e.message);
 
-            errorElement.innerHTML = e.message;
-            errorElement.style.display = 'block';
+            error.showError();
         })
         .finally(() => {
-            document.querySelector('#loader').style.display = 'none';
+            loader.hideLoader();
         });
 };
